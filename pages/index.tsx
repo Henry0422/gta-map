@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   GoogleMap,
   Polygon,
@@ -8,35 +8,9 @@ import {
 } from '@react-google-maps/api';
 import Head from 'next/head';
 
-const MAP_CENTER = { lat: 43.793, lng: -79.345 };
-const MAP_ZOOM = 12;
+const MAP_CENTER = { lat: 43.805, lng: -79.365 };
+const MAP_ZOOM = 11;
 
-interface Region {
-  id: string;
-  name: string;
-  nameEn: string;
-  color: string;
-  paths: google.maps.LatLngLiteral[];
-}
-
-// 四条道路围成的区域。paths 仅为粗略顶点，用于地图加载时的占位与图例定位；
-// 真正的边界由下方按"路口名称"路由后吸附到路面得到。
-const region: Region = {
-  id: 'mccowan-bathurst-major-mackenzie-eglinton',
-  name: 'McCowan Rd以东 · Major Mackenzie Dr以南 · Bathurst St以东 · Eglinton Ave以南',
-  nameEn: 'East of McCowan, South of Major Mackenzie, East of Bathurst, South of Eglinton',
-  color: '#E74C3C',
-  paths: [
-    { lat: 43.866, lng: -79.463 }, // 西北角 Bathurst St × Major Mackenzie Dr
-    { lat: 43.903, lng: -79.293 }, // 东北角 McCowan Rd × Major Mackenzie Dr
-    { lat: 43.735, lng: -79.25 }, // 东南角 McCowan Rd × Eglinton Ave E
-    { lat: 43.705, lng: -79.419 }, // 西南角 Bathurst St × Eglinton Ave W
-  ],
-};
-
-// 区域四条边，按顺时针顺序。每条边用真实"路口名称"作为起点/终点和沿途锚点，
-// 交由 Google 精确地理编码后沿对应道路路由（禁用高速），从而严格贴合该道路并
-// 保留全部弯曲——避免了手填经纬度不准导致吸附到错误平行道路的问题。
 interface BoundaryEdge {
   road: string;
   origin: string;
@@ -45,64 +19,176 @@ interface BoundaryEdge {
   fallback: google.maps.LatLngLiteral[]; // 路由失败时退回的直线段端点
 }
 
-const BOUNDARY_EDGES: BoundaryEdge[] = [
-  // 北边：Major Mackenzie Dr，从 Bathurst 向东到 McCowan
+interface Region {
+  id: string;
+  name: string;
+  nameEn: string;
+  color: string;
+  paths: google.maps.LatLngLiteral[];
+  boundaryEdges: BoundaryEdge[];
+}
+
+// 四条道路围成的区域。paths 仅为粗略顶点，用于地图加载时的占位与图例定位；
+// 真正的边界由下方按"路口名称"路由后吸附到路面得到。
+const REGIONS: Region[] = [
   {
-    road: 'Major Mackenzie Dr',
-    origin: 'Bathurst St & Major Mackenzie Dr W, Richmond Hill, ON',
-    destination: 'McCowan Rd & Major Mackenzie Dr E, Markham, ON',
-    via: [
-      'Yonge St & Major Mackenzie Dr, Richmond Hill, ON',
-      // 'Bayview Ave & Major Mackenzie Dr E, Richmond Hill, ON',
-      // 'Leslie St & Major Mackenzie Dr E, Richmond Hill, ON',
-      // 'Woodbine Ave & Major Mackenzie Dr E, Markham, ON',
-      // 'Victoria Park Ave & Major Mackenzie Dr E, Markham, ON',
-      'Warden Ave & Major Mackenzie Dr E, Markham, ON',
-      // 'Kennedy Rd & Major Mackenzie Dr E, Markham, ON',
+    id: 'dufferin-markham-elgin-mills-eglinton',
+    name: 'Dufferin St以东 · Elgin Mills Rd以南 · Markham Rd以西 · Eglinton Ave以南',
+    nameEn: 'East of Dufferin, South of Elgin Mills, West of Markham, South of Eglinton',
+    color: '#3498DB',
+    paths: [
+      { lat: 43.897, lng: -79.489 }, // 西北角 Dufferin St × Teston Rd（Elgin Mills 西向延伸）
+      { lat: 43.913, lng: -79.26 }, // 东北角 Markham Rd × Elgin Mills Rd
+      { lat: 43.735, lng: -79.26 }, // 东南角 Markham Rd × Eglinton Ave E
+      { lat: 43.705, lng: -79.478 }, // 西南角 Dufferin St × Eglinton Ave W
     ],
-    fallback: [region.paths[0], region.paths[1]],
+    boundaryEdges: [
+      // 北边：Teston Rd（Dufferin→Bathurst）+ Elgin Mills Rd（Bathurst→Markham）
+      {
+        road: 'Elgin Mills Rd',
+        origin: 'Dufferin St & Teston Rd, Vaughan, ON',
+        destination: 'Markham Rd & Elgin Mills Rd E, Markham, ON',
+        via: [
+          'Bathurst St & Teston Rd, Vaughan, ON',
+          'Bathurst St & Elgin Mills Rd W, Richmond Hill, ON',
+          'Yonge St & Elgin Mills Rd E, Richmond Hill, ON',
+          'Bayview Ave & Elgin Mills Rd E, Richmond Hill, ON',
+          'Leslie St & Elgin Mills Rd E, Richmond Hill, ON',
+          'Woodbine Ave & Elgin Mills Rd E, Markham, ON',
+          'Warden Ave & Elgin Mills Rd E, Markham, ON',
+          'McCowan Rd & Elgin Mills Rd E, Markham, ON',
+        ],
+        fallback: [
+          { lat: 43.897, lng: -79.489 },
+          { lat: 43.913, lng: -79.26 },
+        ],
+      },
+      // 东边：Markham Rd，从 Elgin Mills 向南到 Eglinton
+      {
+        road: 'Markham Rd',
+        origin: 'Markham Rd & Elgin Mills Rd E, Markham, ON',
+        destination: 'Markham Rd & Eglinton Ave E, Scarborough, ON',
+        via: [
+          'Markham Rd & Major Mackenzie Dr E, Markham, ON',
+          'Markham Rd & Highway 7, Markham, ON',
+          'Markham Rd & Steeles Ave E, Toronto, ON',
+          'Markham Rd & Sheppard Ave E, Toronto, ON',
+          'Markham Rd & Lawrence Ave E, Toronto, ON',
+        ],
+        fallback: [
+          { lat: 43.913, lng: -79.26 },
+          { lat: 43.735, lng: -79.26 },
+        ],
+      },
+      // 南边：Eglinton Ave，从 Markham 向西到 Dufferin
+      {
+        road: 'Eglinton Ave',
+        origin: 'Markham Rd & Eglinton Ave E, Scarborough, ON',
+        destination: 'Dufferin St & Eglinton Ave W, Toronto, ON',
+        via: [
+          'Kennedy Rd & Eglinton Ave E, Toronto, ON',
+          'Victoria Park Ave & Eglinton Ave E, Toronto, ON',
+          'Don Mills Rd & Eglinton Ave E, Toronto, ON',
+          'Bayview Ave & Eglinton Ave E, Toronto, ON',
+          'Yonge St & Eglinton Ave, Toronto, ON',
+          'Allen Rd & Eglinton Ave W, Toronto, ON',
+        ],
+        fallback: [
+          { lat: 43.735, lng: -79.26 },
+          { lat: 43.705, lng: -79.478 },
+        ],
+      },
+      // 西边：Dufferin St，从 Eglinton 向北到 Teston Rd（Elgin Mills 纬度）
+      {
+        road: 'Dufferin St',
+        origin: 'Dufferin St & Eglinton Ave W, Toronto, ON',
+        destination: 'Dufferin St & Teston Rd, Vaughan, ON',
+        via: [
+          'Dufferin St & Lawrence Ave W, Toronto, ON',
+          'Dufferin St & Sheppard Ave W, Toronto, ON',
+          'Dufferin St & Steeles Ave W, Toronto, ON',
+          'Dufferin St & Rutherford Rd, Vaughan, ON',
+        ],
+        fallback: [
+          { lat: 43.705, lng: -79.478 },
+          { lat: 43.897, lng: -79.489 },
+        ],
+      },
+    ],
   },
-  // 东边：McCowan Rd，从 Major Mackenzie 向南到 Eglinton
   {
-    road: 'McCowan Rd',
-    origin: 'McCowan Rd & Major Mackenzie Dr E, Markham, ON',
-    destination: 'Danforth Rd & Eglinton Ave E, Scarborough, ON',
-    via: [
-      'McCowan Rd & Major Mackenzie Dr E, Markham, ON',
-      'McCowan Rd & Highway 7, Markham, ON',
-      // 'McCowan Rd & Steeles Ave E, Toronto, ON',
-      // 'McCowan Rd & Sheppard Ave E, Toronto, ON',
-      'McCowan Rd & Ellesmere Rd, Toronto, ON',
-      'McCowan Rd & Lawrence Ave E, Toronto, ON',
+    id: 'mccowan-bathurst-major-mackenzie-eglinton',
+    name: 'McCowan Rd以东 · Major Mackenzie Dr以南 · Bathurst St以东 · Eglinton Ave以南',
+    nameEn: 'East of McCowan, South of Major Mackenzie, East of Bathurst, South of Eglinton',
+    color: '#E74C3C',
+    paths: [
+      { lat: 43.866, lng: -79.463 }, // 西北角 Bathurst St × Major Mackenzie Dr
+      { lat: 43.903, lng: -79.293 }, // 东北角 McCowan Rd × Major Mackenzie Dr
+      { lat: 43.735, lng: -79.25 }, // 东南角 McCowan Rd × Eglinton Ave E
+      { lat: 43.705, lng: -79.419 }, // 西南角 Bathurst St × Eglinton Ave W
     ],
-    fallback: [region.paths[1], region.paths[2]],
-  },
-  // 南边：Eglinton Ave，从 McCowan 向西到 Bathurst
-  {
-    road: 'Eglinton Ave',
-    origin: 'Danforth Rd & Eglinton Ave E, Scarborough, ON',
-    destination: 'Bathurst St & Eglinton Ave W, Toronto, ON',
-    via: [
-      'Kennedy Rd & Eglinton Ave E, Toronto, ON',
-      'Victoria Park Ave & Eglinton Ave E, Toronto, ON',
-      'Don Mills Rd & Eglinton Ave E, Toronto, ON',
-      'Bayview Ave & Eglinton Ave E, Toronto, ON',
-      'Yonge St & Eglinton Ave, Toronto, ON',
+    boundaryEdges: [
+      // 北边：Major Mackenzie Dr，从 Bathurst 向东到 McCowan
+      {
+        road: 'Major Mackenzie Dr',
+        origin: 'Bathurst St & Major Mackenzie Dr W, Richmond Hill, ON',
+        destination: 'McCowan Rd & Major Mackenzie Dr E, Markham, ON',
+        via: [
+          'Yonge St & Major Mackenzie Dr, Richmond Hill, ON',
+          'Warden Ave & Major Mackenzie Dr E, Markham, ON',
+        ],
+        fallback: [
+          { lat: 43.866, lng: -79.463 },
+          { lat: 43.903, lng: -79.293 },
+        ],
+      },
+      // 东边：McCowan Rd，从 Major Mackenzie 向南到 Eglinton
+      {
+        road: 'McCowan Rd',
+        origin: 'McCowan Rd & Major Mackenzie Dr E, Markham, ON',
+        destination: 'Danforth Rd & Eglinton Ave E, Scarborough, ON',
+        via: [
+          'McCowan Rd & Highway 7, Markham, ON',
+          'McCowan Rd & Ellesmere Rd, Toronto, ON',
+          'McCowan Rd & Lawrence Ave E, Toronto, ON',
+        ],
+        fallback: [
+          { lat: 43.903, lng: -79.293 },
+          { lat: 43.735, lng: -79.25 },
+        ],
+      },
+      // 南边：Eglinton Ave，从 McCowan 向西到 Bathurst
+      {
+        road: 'Eglinton Ave',
+        origin: 'Danforth Rd & Eglinton Ave E, Scarborough, ON',
+        destination: 'Bathurst St & Eglinton Ave W, Toronto, ON',
+        via: [
+          'Kennedy Rd & Eglinton Ave E, Toronto, ON',
+          'Victoria Park Ave & Eglinton Ave E, Toronto, ON',
+          'Don Mills Rd & Eglinton Ave E, Toronto, ON',
+          'Bayview Ave & Eglinton Ave E, Toronto, ON',
+          'Yonge St & Eglinton Ave, Toronto, ON',
+        ],
+        fallback: [
+          { lat: 43.735, lng: -79.25 },
+          { lat: 43.705, lng: -79.419 },
+        ],
+      },
+      // 西边：Bathurst St，从 Eglinton 向北到 Major Mackenzie
+      {
+        road: 'Bathurst St',
+        origin: 'Bathurst St & Eglinton Ave W, Toronto, ON',
+        destination: 'Bathurst St & Major Mackenzie Dr W, Richmond Hill, ON',
+        via: [
+          'Bathurst St & Lawrence Ave W, Toronto, ON',
+          'Bathurst St & Steeles Ave W, Toronto, ON',
+        ],
+        fallback: [
+          { lat: 43.705, lng: -79.419 },
+          { lat: 43.866, lng: -79.463 },
+        ],
+      },
     ],
-    fallback: [region.paths[2], region.paths[3]],
-  },
-  // 西边：Bathurst St，从 Eglinton 向北到 Major Mackenzie
-  {
-    road: 'Bathurst St',
-    origin: 'Bathurst St & Eglinton Ave W, Toronto, ON',
-    destination: 'Bathurst St & Major Mackenzie Dr W, Richmond Hill, ON',
-    via: [
-      'Bathurst St & Lawrence Ave W, Toronto, ON',
-      // 'Bathurst St & Sheppard Ave W, Toronto, ON',
-      'Bathurst St & Steeles Ave W, Toronto, ON',
-      // 'Bathurst St & Centre St, Vaughan, ON',
-    ],
-    fallback: [region.paths[3], region.paths[0]],
   },
 ];
 
@@ -156,12 +242,11 @@ const defaultMapOptions: google.maps.MapOptions = {
 };
 
 export default function Home() {
-  const [selected, setSelected] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [, setMap] = useState<google.maps.Map | null>(null);
-  // 吸附到真实道路后的边界（null 时先用直线顶点占位）
-  const [snappedPath, setSnappedPath] = useState<google.maps.LatLngLiteral[] | null>(
-    null,
-  );
+  const [snappedPaths, setSnappedPaths] = useState<
+    Record<string, google.maps.LatLngLiteral[] | null>
+  >({});
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? '';
 
@@ -169,17 +254,21 @@ export default function Home() {
     googleMapsApiKey: apiKey,
   });
 
-  // 地图脚本加载后，沿四条道路逐段路由，把边界吸附到路面
   useEffect(() => {
     if (!isLoaded) return;
     let cancelled = false;
     const service = new google.maps.DirectionsService();
 
     Promise.all(
-      BOUNDARY_EDGES.map((edge) => routeAlongRoad(service, edge)),
-    ).then((edgePaths) => {
+      REGIONS.map(async (regionConfig) => {
+        const edgePaths = await Promise.all(
+          regionConfig.boundaryEdges.map((edge) => routeAlongRoad(service, edge)),
+        );
+        return { id: regionConfig.id, path: edgePaths.flat() };
+      }),
+    ).then((results) => {
       if (cancelled) return;
-      setSnappedPath(edgePaths.flat());
+      setSnappedPaths(Object.fromEntries(results.map((r) => [r.id, r.path])));
     });
 
     return () => {
@@ -198,40 +287,13 @@ export default function Home() {
   const polygonOptions = useMemo(
     () => ({
       fillOpacity: 0.18,
-      strokeOpacity: 0, // 隐藏实线边框，改用下方的虚线 Polyline
+      strokeOpacity: 0,
       strokeWeight: 0,
     }),
     [],
   );
 
-  // 区域多边形：优先用吸附后的路面边界，否则退回直线顶点
-  const regionPath = snappedPath ?? region.paths;
-
-  // 闭合的虚线路径：在末尾追加起点，把边框连成一圈
-  const dashedPath = useMemo(
-    () => (regionPath.length ? [...regionPath, regionPath[0]] : regionPath),
-    [regionPath],
-  );
-
-  const dashedLineOptions = useMemo<google.maps.PolylineOptions>(
-    () => ({
-      strokeOpacity: 0, // 整条线透明，仅显示重复的虚线符号
-      icons: [
-        {
-          icon: {
-            path: 'M 0,-1 0,1',
-            strokeColor: region.color,
-            strokeOpacity: 1,
-            strokeWeight: 3,
-            scale: 3,
-          },
-          offset: '0',
-          repeat: '18px',
-        },
-      ],
-    }),
-    [],
-  );
+  const selectedRegion = REGIONS.find((r) => r.id === selectedId);
 
   if (!apiKey) {
     return (
@@ -289,38 +351,66 @@ export default function Home() {
           onLoad={onLoad}
           onUnmount={onUnmount}
         >
-          <Polygon
-            key={region.id}
-            paths={regionPath}
-            options={{
-              ...polygonOptions,
-              fillColor: region.color,
-              strokeColor: region.color,
-            }}
-            onClick={() => setSelected(true)}
-          />
+          {REGIONS.map((regionConfig) => {
+            const regionPath = snappedPaths[regionConfig.id] ?? regionConfig.paths;
+            const dashedPath =
+              regionPath.length > 0 ? [...regionPath, regionPath[0]] : regionPath;
+            const dashedLineOptions: google.maps.PolylineOptions = {
+              strokeOpacity: 0,
+              icons: [
+                {
+                  icon: {
+                    path: 'M 0,-1 0,1',
+                    strokeColor: regionConfig.color,
+                    strokeOpacity: 1,
+                    strokeWeight: 3,
+                    scale: 3,
+                  },
+                  offset: '0',
+                  repeat: '18px',
+                },
+              ],
+            };
 
-          <Polyline path={dashedPath} options={dashedLineOptions} />
+            return (
+              <Fragment key={regionConfig.id}>
+                <Polygon
+                  paths={regionPath}
+                  options={{
+                    ...polygonOptions,
+                    fillColor: regionConfig.color,
+                    strokeColor: regionConfig.color,
+                  }}
+                  onClick={() => setSelectedId(regionConfig.id)}
+                />
+                <Polyline path={dashedPath} options={dashedLineOptions} />
+              </Fragment>
+            );
+          })}
 
-          {selected && (
+          {selectedRegion && (
             <InfoWindow
-              position={getCenter(region.paths)}
-              onCloseClick={() => setSelected(false)}
+              position={getCenter(selectedRegion.paths)}
+              onCloseClick={() => setSelectedId(null)}
             >
               <div style={{ padding: 4, maxWidth: 320 }}>
-                <strong>{region.name}</strong>
+                <strong>{selectedRegion.name}</strong>
                 <br />
-                <span style={{ fontSize: 12, color: '#666' }}>{region.nameEn}</span>
+                <span style={{ fontSize: 12, color: '#666' }}>{selectedRegion.nameEn}</span>
               </div>
             </InfoWindow>
           )}
         </GoogleMap>
 
         <div style={legendContainerStyle}>
-          <div style={legendItemStyle}>
-            <span style={{ ...legendColorStyle, borderColor: region.color }} />
-            <span style={legendLabelStyle}>{region.name}</span>
-          </div>
+          {REGIONS.map((regionConfig) => (
+            <div key={regionConfig.id} style={legendItemStyle}>
+              <span
+                style={{ ...legendColorStyle, borderColor: regionConfig.color }}
+              />
+              <span style={legendLabelStyle}>{regionConfig.name}</span>
+            </div>
+          ))}
         </div>
       </div>
     </>
