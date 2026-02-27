@@ -38,7 +38,7 @@ const REGIONS: Region[] = [
     color: '#3498DB',
     paths: [
       { lat: 43.897, lng: -79.489 }, // 西北角 Dufferin St × Teston Rd（Elgin Mills 西向延伸）
-      { lat: 43.913, lng: -79.26 }, // 东北角 Markham Rd × Elgin Mills Rd
+      { lat: 43.917, lng: -79.262 }, // 东北角 Markham Rd × Elgin Mills Rd
       { lat: 43.735, lng: -79.26 }, // 东南角 Markham Rd × Eglinton Ave E
       { lat: 43.705, lng: -79.478 }, // 西南角 Dufferin St × Eglinton Ave W
     ],
@@ -47,26 +47,27 @@ const REGIONS: Region[] = [
       {
         road: 'Elgin Mills Rd',
         origin: 'Dufferin St & Teston Rd, Vaughan, ON',
-        destination: 'Markham Rd & Elgin Mills Rd E, Markham, ON',
+        // 路口名会误解析到 Markham Rd 南侧；用坐标锚定真实交叉口
+        destination: '43.9189,-79.2558',
         via: [
           'Bathurst St & Teston Rd, Vaughan, ON',
           'Bathurst St & Elgin Mills Rd W, Richmond Hill, ON',
           'Yonge St & Elgin Mills Rd E, Richmond Hill, ON',
           'Bayview Ave & Elgin Mills Rd E, Richmond Hill, ON',
           'Leslie St & Elgin Mills Rd E, Richmond Hill, ON',
-          'Woodbine Ave & Elgin Mills Rd E, Markham, ON',
+          // 'Woodbine Ave & Elgin Mills Rd E, Markham, ON',
           'Warden Ave & Elgin Mills Rd E, Markham, ON',
           'McCowan Rd & Elgin Mills Rd E, Markham, ON',
         ],
         fallback: [
           { lat: 43.897, lng: -79.489 },
-          { lat: 43.913, lng: -79.26 },
+          { lat: 43.917, lng: -79.262 },
         ],
       },
       // 东边：Markham Rd，从 Elgin Mills 向南到 Eglinton
       {
         road: 'Markham Rd',
-        origin: 'Markham Rd & Elgin Mills Rd E, Markham, ON',
+        origin: '43.9189,-79.2558',
         destination: 'Markham Rd & Eglinton Ave E, Scarborough, ON',
         via: [
           'Markham Rd & Major Mackenzie Dr E, Markham, ON',
@@ -76,7 +77,7 @@ const REGIONS: Region[] = [
           'Markham Rd & Lawrence Ave E, Toronto, ON',
         ],
         fallback: [
-          { lat: 43.913, lng: -79.26 },
+          { lat: 43.917, lng: -79.262 },
           { lat: 43.735, lng: -79.26 },
         ],
       },
