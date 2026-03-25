@@ -41,7 +41,7 @@ const REGIONS: Region[] = [
       { lat: 43.897, lng: -79.489 }, // 西北角 Dufferin St × Teston Rd（Elgin Mills 西向延伸）
       { lat: 43.917, lng: -79.262 }, // 东北角 Markham Rd × Elgin Mills Rd
       { lat: 43.735, lng: -79.26 }, // 东南角 Markham Rd × Eglinton Ave E
-      { lat: 43.705, lng: -79.478 }, // 西南角 Dufferin St × Eglinton Ave W
+      { lat: 43.696, lng: -79.450 }, // 西南角 Dufferin St × Eglinton Ave W
     ],
     boundaryEdges: [
       // 北边：Teston Rd（Dufferin→Bathurst）+ Elgin Mills Rd（Bathurst→Markham）
@@ -97,7 +97,7 @@ const REGIONS: Region[] = [
         ],
         fallback: [
           { lat: 43.735, lng: -79.26 },
-          { lat: 43.705, lng: -79.478 },
+          { lat: 43.696, lng: -79.450 },
         ],
       },
       // 西边：Dufferin St，从 Eglinton 向北到 Teston Rd（Elgin Mills 纬度）
@@ -112,7 +112,7 @@ const REGIONS: Region[] = [
           'Dufferin St & Rutherford Rd, Vaughan, ON',
         ],
         fallback: [
-          { lat: 43.705, lng: -79.478 },
+          { lat: 43.696, lng: -79.450 },
           { lat: 43.897, lng: -79.489 },
         ],
       },
