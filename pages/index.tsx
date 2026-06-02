@@ -22,13 +22,13 @@ interface Region {
 // 四条道路围成的区域。paths 仅为粗略顶点，用于地图加载时的占位与图例定位；
 // 真正的边界由下方按"路口名称"路由后吸附到路面得到。
 const region: Region = {
-  id: 'mccowan-bathurst-elgin-eglinton',
-  name: 'McCowan Rd以东 · Elgin Mills Rd以南 · Bathurst St以东 · Eglinton Ave以南',
-  nameEn: 'East of McCowan, South of Elgin Mills, East of Bathurst, South of Eglinton',
+  id: 'mccowan-bathurst-major-mackenzie-eglinton',
+  name: 'McCowan Rd以东 · Major Mackenzie Dr以南 · Bathurst St以东 · Eglinton Ave以南',
+  nameEn: 'East of McCowan, South of Major Mackenzie, East of Bathurst, South of Eglinton',
   color: '#E74C3C',
   paths: [
-    { lat: 43.916, lng: -79.466 }, // 西北角 Bathurst St × Elgin Mills Rd
-    { lat: 43.886, lng: -79.283 }, // 东北角 McCowan Rd × Elgin Mills Rd
+    { lat: 43.866, lng: -79.463 }, // 西北角 Bathurst St × Major Mackenzie Dr
+    { lat: 43.903, lng: -79.293 }, // 东北角 McCowan Rd × Major Mackenzie Dr
     { lat: 43.735, lng: -79.25 }, // 东南角 McCowan Rd × Eglinton Ave E
     { lat: 43.705, lng: -79.419 }, // 西南角 Bathurst St × Eglinton Ave W
   ],
@@ -46,26 +46,26 @@ interface BoundaryEdge {
 }
 
 const BOUNDARY_EDGES: BoundaryEdge[] = [
-  // 北边：Elgin Mills Rd，从 Bathurst 向东到 McCowan
+  // 北边：Major Mackenzie Dr，从 Bathurst 向东到 McCowan
   {
-    road: 'Elgin Mills Rd',
-    origin: 'Bathurst St & Elgin Mills Rd, Richmond Hill, ON',
-    destination: 'McCowan Rd & Elgin Mills Rd E, Markham, ON',
+    road: 'Major Mackenzie Dr',
+    origin: 'Bathurst St & Major Mackenzie Dr W, Richmond Hill, ON',
+    destination: 'McCowan Rd & Major Mackenzie Dr E, Markham, ON',
     via: [
-      'Yonge St & Elgin Mills Rd, Richmond Hill, ON',
-      'Bayview Ave & Elgin Mills Rd E, Richmond Hill, ON',
-      'Leslie St & Elgin Mills Rd E, Richmond Hill, ON',
-      // 'Woodbine Ave & Elgin Mills Rd E, Markham, ON',
-      // 'Victoria Park Ave & Elgin Mills Rd E, Markham, ON',
-      'Warden Ave & Elgin Mills Rd E, Markham, ON',
-      'Kennedy Rd & Elgin Mills Rd E, Markham, ON',
+      'Yonge St & Major Mackenzie Dr, Richmond Hill, ON',
+      // 'Bayview Ave & Major Mackenzie Dr E, Richmond Hill, ON',
+      // 'Leslie St & Major Mackenzie Dr E, Richmond Hill, ON',
+      // 'Woodbine Ave & Major Mackenzie Dr E, Markham, ON',
+      // 'Victoria Park Ave & Major Mackenzie Dr E, Markham, ON',
+      'Warden Ave & Major Mackenzie Dr E, Markham, ON',
+      // 'Kennedy Rd & Major Mackenzie Dr E, Markham, ON',
     ],
     fallback: [region.paths[0], region.paths[1]],
   },
-  // 东边：McCowan Rd，从 Elgin Mills 向南到 Eglinton
+  // 东边：McCowan Rd，从 Major Mackenzie 向南到 Eglinton
   {
     road: 'McCowan Rd',
-    origin: 'McCowan Rd & Elgin Mills Rd E, Markham, ON',
+    origin: 'McCowan Rd & Major Mackenzie Dr E, Markham, ON',
     destination: 'Danforth Rd & Eglinton Ave E, Scarborough, ON',
     via: [
       'McCowan Rd & Major Mackenzie Dr E, Markham, ON',
@@ -91,17 +91,16 @@ const BOUNDARY_EDGES: BoundaryEdge[] = [
     ],
     fallback: [region.paths[2], region.paths[3]],
   },
-  // 西边：Bathurst St，从 Eglinton 向北到 Elgin Mills
+  // 西边：Bathurst St，从 Eglinton 向北到 Major Mackenzie
   {
     road: 'Bathurst St',
     origin: 'Bathurst St & Eglinton Ave W, Toronto, ON',
-    destination: 'Bathurst St & Elgin Mills Rd, Richmond Hill, ON',
+    destination: 'Bathurst St & Major Mackenzie Dr W, Richmond Hill, ON',
     via: [
       'Bathurst St & Lawrence Ave W, Toronto, ON',
       // 'Bathurst St & Sheppard Ave W, Toronto, ON',
       'Bathurst St & Steeles Ave W, Toronto, ON',
       // 'Bathurst St & Centre St, Vaughan, ON',
-      // 'Bathurst St & Major Mackenzie Dr W, Richmond Hill, ON',
     ],
     fallback: [region.paths[3], region.paths[0]],
   },
