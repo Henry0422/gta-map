@@ -1,6 +1,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   GoogleMap,
+  Marker,
   Polygon,
   Polyline,
   InfoWindow,
@@ -193,6 +194,36 @@ const REGIONS: Region[] = [
   },
 ];
 
+interface POI {
+  id: string;
+  name: string;
+  address: string;
+}
+
+// 需要在地图上标记的兴趣点。坐标通过 Google Maps Geocoder 在运行时解析，不硬编码经纬度。
+const POIS: POI[] = [
+  {
+    id: 'main ',
+    name: '主自提点',
+    address: '188 Fairview Mall Dr, North York, ON M2J 5A7',
+  },
+  {
+    id: 'home-depot-markham',
+    name: 'Home Depot 满$80自提点',
+    address: '3155 Hwy 7, Markham, ON L3R 0J6',
+  },
+  {
+    id: 'bank-of-china-markham',
+    name: 'Bank of China 满$80自提点 (Hwy 7 & Leslie)',
+    address: '1 Bank of China Way, Markham, ON L3T 0E2',
+  },
+  {
+    id: 'home-depot-richmond-hill',
+    name: 'Home Depot 满$80自提点',
+    address: '50 Red Maple Rd, Richmond Hill, ON L4B 4K1',
+  },
+];
+
 // 用 Directions 把一条边吸附到真实道路上：
 // 用路口名称作为起点/终点/途经点 + 禁用高速，保证整段紧贴指定主干道并保留弯曲。
 function routeAlongRoad(
@@ -244,9 +275,13 @@ const defaultMapOptions: google.maps.MapOptions = {
 
 export default function Home() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedPoiId, setSelectedPoiId] = useState<string | null>(null);
   const [, setMap] = useState<google.maps.Map | null>(null);
   const [snappedPaths, setSnappedPaths] = useState<
     Record<string, google.maps.LatLngLiteral[] | null>
+  >({});
+  const [poiPositions, setPoiPositions] = useState<
+    Record<string, google.maps.LatLngLiteral | null>
   >({});
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? '';
@@ -277,6 +312,32 @@ export default function Home() {
     };
   }, [isLoaded]);
 
+  // 使用 Google Maps Geocoder 将 POI 地址解析为坐标，避免硬编码经纬度
+  useEffect(() => {
+    if (!isLoaded) return;
+    let cancelled = false;
+    const geocoder = new google.maps.Geocoder();
+
+    POIS.forEach((poi) => {
+      geocoder.geocode({ address: poi.address }, (results, status) => {
+        if (cancelled) return;
+        if (status === google.maps.GeocoderStatus.OK && results?.[0]?.geometry?.location) {
+          const loc = results[0].geometry.location;
+          setPoiPositions((prev) => ({
+            ...prev,
+            [poi.id]: { lat: loc.lat(), lng: loc.lng() },
+          }));
+        } else {
+          console.warn(`Geocoding failed for "${poi.name}" (${poi.address}): ${status}`);
+        }
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoaded]);
+
   const onLoad = useCallback((mapInstance: google.maps.Map) => {
     setMap(mapInstance);
   }, []);
@@ -295,6 +356,8 @@ export default function Home() {
   );
 
   const selectedRegion = REGIONS.find((r) => r.id === selectedId);
+  const selectedPoi = POIS.find((p) => p.id === selectedPoiId);
+  const selectedPoiPos = selectedPoiId ? poiPositions[selectedPoiId] : null;
 
   if (!apiKey) {
     return (
@@ -382,7 +445,10 @@ export default function Home() {
                     fillColor: regionConfig.color,
                     strokeColor: regionConfig.color,
                   }}
-                  onClick={() => setSelectedId(regionConfig.id)}
+                  onClick={() => {
+                    setSelectedPoiId(null);
+                    setSelectedId(regionConfig.id);
+                  }}
                 />
                 <Polyline path={dashedPath} options={dashedLineOptions} />
               </Fragment>
@@ -398,6 +464,46 @@ export default function Home() {
                 <strong>{selectedRegion.name}</strong>
                 <br />
                 <span style={{ fontSize: 12, color: '#666' }}>{selectedRegion.nameEn}</span>
+              </div>
+            </InfoWindow>
+          )}
+
+          {/* POI 标记：通过 Geocoder 解析地址得到坐标，点击显示名称和地址 */}
+          {POIS.map((poi) => {
+            const pos = poiPositions[poi.id];
+            if (!pos) return null;
+            return (
+              <Marker
+                key={poi.id}
+                position={pos}
+                title={poi.name}
+                onClick={() => {
+                  setSelectedId(null);
+                  setSelectedPoiId(poi.id);
+                }}
+                icon={{
+                  url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">' +
+                    '<path d="M16 0C7.164 0 0 7.164 0 16c0 12 16 24 16 24s16-12 16-24C32 7.164 24.836 0 16 0z" fill="#E74C3C"/>' +
+                    '<circle cx="16" cy="15" r="6" fill="white"/>' +
+                    '</svg>'
+                  ),
+                  scaledSize: new google.maps.Size(28, 35),
+                  anchor: new google.maps.Point(14, 35),
+                }}
+              />
+            );
+          })}
+
+          {selectedPoi && selectedPoiPos && (
+            <InfoWindow
+              position={selectedPoiPos}
+              onCloseClick={() => setSelectedPoiId(null)}
+            >
+              <div style={{ padding: 4, maxWidth: 280 }}>
+                <strong style={{ fontSize: 14 }}>{selectedPoi.name}</strong>
+                <br />
+                <span style={{ fontSize: 12, color: '#555' }}>{selectedPoi.address}</span>
               </div>
             </InfoWindow>
           )}
