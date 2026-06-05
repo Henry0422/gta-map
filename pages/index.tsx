@@ -34,8 +34,8 @@ interface Region {
 const REGIONS: Region[] = [
   {
     id: 'dufferin-markham-elgin-mills-eglinton',
-    name: 'Dufferin St以东 · Elgin Mills Rd以南 · Markham Rd以西 · Eglinton Ave以南',
-    nameEn: 'East of Dufferin, South of Elgin Mills, West of Markham, South of Eglinton',
+    name: '满$100免费配送范围',
+    nameEn: 'Free delivery range for orders over $100',
     color: '#3498DB',
     paths: [
       { lat: 43.897, lng: -79.489 }, // 西北角 Dufferin St × Teston Rd（Elgin Mills 西向延伸）
@@ -120,9 +120,9 @@ const REGIONS: Region[] = [
   },
   {
     id: 'mccowan-bathurst-major-mackenzie-eglinton',
-    name: 'McCowan Rd以东 · Major Mackenzie Dr以南 · Bathurst St以东 · Eglinton Ave以南',
-    nameEn: 'East of McCowan, South of Major Mackenzie, East of Bathurst, South of Eglinton',
-    color: '#E74C3C',
+    name: '满$80免费配送范围',
+    nameEn: 'Free delivery range for orders over $80',
+    color: '#e7773c',
     paths: [
       { lat: 43.866, lng: -79.463 }, // 西北角 Bathurst St × Major Mackenzie Dr
       { lat: 43.903, lng: -79.293 }, // 东北角 McCowan Rd × Major Mackenzie Dr
@@ -183,7 +183,12 @@ const REGIONS: Region[] = [
         destination: 'Bathurst St & Major Mackenzie Dr W, Richmond Hill, ON',
         via: [
           'Bathurst St & Lawrence Ave W, Toronto, ON',
+          'Bathurst St & Wilson Ave, Toronto, ON',
+          'Bathurst St & Sheppard Ave W, Toronto, ON',
+          'Bathurst St & Finch Ave W,Toronto, ON',
           'Bathurst St & Steeles Ave W, Toronto, ON',
+          'Bathurst St & Clark Ave W, Vaughan, ON',
+          // 'Bathurst St & Rutherford Rd, Vaughan, ON',
         ],
         fallback: [
           { lat: 43.705, lng: -79.419 },
@@ -208,9 +213,9 @@ const POIS: POI[] = [
     address: '188 Fairview Mall Dr, North York, ON M2J 5A7',
   },
   {
-    id: 'home-depot-markham',
-    name: 'Home Depot 满$80自提点',
-    address: '3155 Hwy 7, Markham, ON L3R 0J6',
+    id: 'whole-foods-markham',
+    name: 'Whole Foods Market 满$80自提点',
+    address: '3997 Hwy 7, Markham, ON L3R 5M6',
   },
   {
     id: 'bank-of-china-markham',
