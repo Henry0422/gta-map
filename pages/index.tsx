@@ -44,15 +44,12 @@ const REGIONS: Region[] = [
       { lat: 43.696, lng: -79.450 }, // 西南角 Dufferin St × Eglinton Ave W
     ],
     boundaryEdges: [
-      // 北边：Teston Rd（Dufferin→Bathurst）+ Elgin Mills Rd（Bathurst→Markham）
+      // 北边：Eglin Mills Rd，从 Bathurst 向东到 McCowan Rd
       {
         road: 'Elgin Mills Rd',
-        origin: 'Dufferin St & Teston Rd, Vaughan, ON',
-        // 路口名会误解析到 Markham Rd 南侧；用坐标锚定真实交叉口
-        destination: '43.9189,-79.2558',
+        origin: 'Bathurst St & Elgin Mills Rd, Richmond Hill, ON',
+        destination: 'McCowan Rd & Elgin Mills Rd E, Markham, ON',
         via: [
-          'Bathurst St & Teston Rd, Vaughan, ON',
-          'Bathurst St & Elgin Mills Rd W, Richmond Hill, ON',
           'Yonge St & Elgin Mills Rd E, Richmond Hill, ON',
           'Bayview Ave & Elgin Mills Rd E, Richmond Hill, ON',
           'Leslie St & Elgin Mills Rd E, Richmond Hill, ON',
@@ -61,24 +58,31 @@ const REGIONS: Region[] = [
           'McCowan Rd & Elgin Mills Rd E, Markham, ON',
         ],
         fallback: [
-          { lat: 43.897, lng: -79.489 },
-          { lat: 43.917, lng: -79.262 },
+          { lat: 43.8793, lng: -79.4917 },
+          { lat: 43.90, lng: -79.26 },
         ],
+      },
+      {
+        road: 'McCowan Rd',
+        origin: 'McCowan Rd & Elgin Mills Rd E, Markham, ON',
+        destination: 'McCowan Rd & 16th Ave, Markham, ON',
+        via: [
+        ],
+        fallback: [],
       },
       // 东边：Markham Rd，从 Elgin Mills 向南到 Eglinton
       {
         road: 'Markham Rd',
-        origin: '43.9189,-79.2558',
+        origin: 'Markham Rd & 16th Ave, Markham, ON',
         destination: 'Markham Rd & Eglinton Ave E, Scarborough, ON',
         via: [
-          'Markham Rd & Major Mackenzie Dr E, Markham, ON',
+          // 'Markham Rd & Major Mackenzie Dr E, Markham, ON',
           'Markham Rd & Highway 7, Markham, ON',
           'Markham Rd & Steeles Ave E, Toronto, ON',
-          'Markham Rd & Sheppard Ave E, Toronto, ON',
           'Markham Rd & Lawrence Ave E, Toronto, ON',
         ],
         fallback: [
-          { lat: 43.917, lng: -79.262 },
+          { lat: 43.94, lng: -79.26 },
           { lat: 43.735, lng: -79.26 },
         ],
       },
@@ -100,20 +104,34 @@ const REGIONS: Region[] = [
           { lat: 43.696, lng: -79.450 },
         ],
       },
-      // 西边：Dufferin St，从 Eglinton 向北到 Teston Rd（Elgin Mills 纬度）
+     // 西边：Dufferin St，从 Eglinton 向北到 Rutherford Rd
       {
         road: 'Dufferin St',
         origin: 'Dufferin St & Eglinton Ave W, Toronto, ON',
-        destination: 'Dufferin St & Teston Rd, Vaughan, ON',
+        destination: 'Dufferin St & Rutherford Rd, Vaughan, ON',
         via: [
           'Dufferin St & Lawrence Ave W, Toronto, ON',
           'Dufferin St & Sheppard Ave W, Toronto, ON',
-          'Dufferin St & Steeles Ave W, Toronto, ON',
+          'Dufferin St & Finch Ave W,Toronto, ON',
+          'Dufferin St & Centre St, Toronto, ON',
           'Dufferin St & Rutherford Rd, Vaughan, ON',
         ],
         fallback: [
           { lat: 43.696, lng: -79.450 },
           { lat: 43.897, lng: -79.489 },
+        ],
+      },
+      {
+        road: 'Bathurst St',
+        origin: 'Bathurst St & Carrville Rd, Vaughan, ON',
+        destination: 'Bathurst St & Major Mackenzie Dr, Richmond Hill, ON',
+        via: [
+          '43.849195, -79.459030',
+          'Bathurst St & Major Mackenzie Dr, Richmond Hill, ON',
+        ],
+        fallback: [
+          { lat: 43.866, lng: -79.463 },
+          { lat: 43.903, lng: -79.293 },
         ],
       },
     ],
