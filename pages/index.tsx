@@ -295,7 +295,7 @@ const containerStyle: React.CSSProperties = {
 };
 
 const defaultMapOptions: google.maps.MapOptions = {
-  mapTypeControl: true,
+  mapTypeControl: false,
   streetViewControl: false,
   fullscreenControl: true,
   zoomControl: true,
