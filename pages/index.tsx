@@ -254,11 +254,19 @@ function routeAlongRoad(
   edge: BoundaryEdge,
 ): Promise<google.maps.LatLngLiteral[]> {
   return new Promise((resolve) => {
+// 规范化并去重途经点：去掉与 origin/destination 相同的项并移除重复值
+    const originStr = String(edge.origin).trim();
+    const destinationStr = String(edge.destination).trim();
+    const filteredWaypoints = (edge.via || [])
+      .map((loc) => loc.trim())
+      .filter((loc, idx, arr) => loc && loc !== originStr && loc !== destinationStr && arr.indexOf(loc) === idx)
+      .map((location) => ({ location, stopover: false }));
+
     service.route(
       {
         origin: edge.origin,
         destination: edge.destination,
-        waypoints: edge.via.map((location) => ({ location, stopover: false })),
+        waypoints: filteredWaypoints,
         travelMode: google.maps.TravelMode.DRIVING,
         avoidHighways: true,
         avoidFerries: true,
