@@ -148,11 +148,11 @@ const REGIONS: Region[] = [
       { lat: 43.705, lng: -79.419 }, // 西南角 Bathurst St × Eglinton Ave W
     ],
     boundaryEdges: [
-      // 北边：Major Mackenzie Dr，从 Bathurst 向东到 McCowan
+      // 北边：Major Mackenzie Dr，从 Yonge St 向东到 Kennedy Rd
       {
         road: 'Major Mackenzie Dr',
-        origin: 'Bathurst St & Major Mackenzie Dr W, Richmond Hill, ON',
-        destination: 'McCowan Rd & Major Mackenzie Dr E, Markham, ON',
+        origin: 'Yonge St & Major Mackenzie Dr W, Richmond Hill, ON',
+        destination: 'Kennedy Rd & Major Mackenzie Dr E, Markham, ON',
         via: [
           'Yonge St & Major Mackenzie Dr, Richmond Hill, ON',
           'Warden Ave & Major Mackenzie Dr E, Markham, ON',
@@ -162,13 +162,21 @@ const REGIONS: Region[] = [
           { lat: 43.903, lng: -79.293 },
         ],
       },
-      // 东边：McCowan Rd，从 Major Mackenzie 向南到 Eglinton
+      // 额外添加一条路：Kennedy Rd 从 Major Mackenzie 向南到 Highway 7，补齐北边边界的缺口
+      {
+        road: 'Kennedy Rd',
+        origin: 'Kennedy Rd & Major Mackenzie Dr E, Markham, ON',
+        destination: 'Kennedy Rd & Highway 7, Toronto, ON',
+        via: [
+        ],
+        fallback: [],
+      },
+      // 东边：McCowan Rd，从 Highway 7 向南到 Eglinton
       {
         road: 'McCowan Rd',
-        origin: 'McCowan Rd & Major Mackenzie Dr E, Markham, ON',
+        origin: 'McCowan Rd & Highway 7, Markham, ON',
         destination: 'Danforth Rd & Eglinton Ave E, Scarborough, ON',
         via: [
-          'McCowan Rd & Highway 7, Markham, ON',
           'McCowan Rd & Ellesmere Rd, Toronto, ON',
           'McCowan Rd & Lawrence Ave E, Toronto, ON',
         ],
@@ -177,7 +185,7 @@ const REGIONS: Region[] = [
           { lat: 43.735, lng: -79.25 },
         ],
       },
-      // 南边：Eglinton Ave，从 McCowan 向西到 Bathurst
+      // 南边：Eglinton Ave，从 Danforth Rd 向西到 Bathurst
       {
         road: 'Eglinton Ave',
         origin: 'Danforth Rd & Eglinton Ave E, Scarborough, ON',
@@ -194,11 +202,11 @@ const REGIONS: Region[] = [
           { lat: 43.705, lng: -79.419 },
         ],
       },
-      // 西边：Bathurst St，从 Eglinton 向北到 Major Mackenzie
+      // 西边：Bathurst St，从 Eglinton 向北到 Highway 7
       {
         road: 'Bathurst St',
         origin: 'Bathurst St & Eglinton Ave W, Toronto, ON',
-        destination: 'Bathurst St & Major Mackenzie Dr W, Richmond Hill, ON',
+        destination: 'Bathurst St & Highway 7, Thornhill, ON',
         via: [
           'Bathurst St & Lawrence Ave W, Toronto, ON',
           'Bathurst St & Wilson Ave, Toronto, ON',
@@ -210,13 +218,25 @@ const REGIONS: Region[] = [
           'Bathurst St & Alexis Blvd, Toronto, ON',
           '43.758647, -79.439229',
           '43.762549, -79.440188',
-          // 'Bathurst St & Ellerslie Ave, Toronto, ON',
           'Bathurst St & Finch Ave W,Toronto, ON',
           'Bathurst St & Steeles Ave W, Toronto, ON',
           'Bathurst St & Clark Ave W, Vaughan, ON',
         ],
         fallback: [
           { lat: 43.705, lng: -79.419 },
+          { lat: 43.866, lng: -79.463 },
+        ],
+      },
+      // 额外添加一条路：Yonge St 从 Major Mackenzie 向北到 Major Mackenzie Dr, 补齐北边边界的缺口
+      {
+        road: 'Yonge St',
+        origin: 'Yonge St & Connector Rd, Richmond Hill, ON',
+        destination: 'Yonge St & Major Mackenzie Dr, Richmond Hill, ON',
+        via: [
+          'Yonge St & 16th Ave, Richmond Hill, ON',
+        ],
+        fallback: [
+          { lat: 43.758, lng: -79.439 },
           { lat: 43.866, lng: -79.463 },
         ],
       },
