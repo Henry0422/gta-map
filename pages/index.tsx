@@ -272,6 +272,11 @@ const POIS: POI[] = [
     name: 'Home Depot 满$80自提点',
     address: '50 Red Maple Rd, Richmond Hill, ON L4B 4K1',
   },
+  {
+    id: 'Walmart-richmond-hill',
+    name: 'Walmart 满$100自提点',
+    address: '1070 Major Mackenzie Dr E, Richmond Hill, ON L4S 1P3',
+  }
 ];
 
 // 使用 Google Maps DirectionsService 将边界路段吸附到真实道路。
