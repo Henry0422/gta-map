@@ -29,8 +29,8 @@ interface Region {
   boundaryEdges: BoundaryEdge[];
 }
 
-// 四条道路围成的区域。paths 仅为粗略顶点，用于地图加载时的占位与图例定位；
-// 真正的边界由下方按"路口名称"路由后吸附到路面得到。
+// 区域由四条主干道围成。`paths` 仅为粗略顶点，用于地图加载时的占位与图例定位。
+// 真正的边界通过对下方 `boundaryEdges` 中的路口名称进行路由，将路径吸附到道路上获得。
 const REGIONS: Region[] = [
   {
     id: 'dufferin-markham-elgin-mills-eglinton',
@@ -274,14 +274,14 @@ const POIS: POI[] = [
   },
 ];
 
-// 用 Directions 把一条边吸附到真实道路上：
-// 用路口名称作为起点/终点/途经点 + 禁用高速，保证整段紧贴指定主干道并保留弯曲。
+// 使用 Google Maps DirectionsService 将边界路段吸附到真实道路。
+// 使用路口名称作为起点/终点/途经点，禁用高速和渡轮，保证路径沿指定主干道且保留弯曲。
 function routeAlongRoad(
   service: google.maps.DirectionsService,
   edge: BoundaryEdge,
 ): Promise<google.maps.LatLngLiteral[]> {
   return new Promise((resolve) => {
-// 规范化并去重途经点：去掉与 origin/destination 相同的项并移除重复值
+// 规范化并去重途经点：移除与 origin/destination 相同或重复的项
     const originStr = String(edge.origin).trim();
     const destinationStr = String(edge.destination).trim();
     const filteredWaypoints = (edge.via || [])
@@ -308,7 +308,7 @@ function routeAlongRoad(
           );
           resolve(points.length ? points : edge.fallback);
         } else {
-          // 失败时退回直线段
+          // 若路由失败，则回退到 edge.fallback 指定的直线端点
           resolve(edge.fallback);
         }
       },
