@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   GoogleMap,
   Marker,
@@ -8,6 +8,7 @@ import {
   useLoadScript,
 } from '@react-google-maps/api';
 import Head from 'next/head';
+import { Copy } from 'lucide-react';
 
 const MAP_CENTER = { lat: 43.805, lng: -79.365 };
 const MAP_ZOOM = 11;
@@ -346,6 +347,7 @@ export default function Home() {
   const [poiPositions, setPoiPositions] = useState<
     Record<string, google.maps.LatLngLiteral | null>
   >({});
+  const [copiedPoiId, setCopiedPoiId] = useState<string | null>(null);
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? '';
 
@@ -407,6 +409,29 @@ export default function Home() {
 
   const onUnmount = useCallback(() => {
     setMap(null);
+  }, []);
+
+  const handleCopyAddress = useCallback(async (address: string, id: string) => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(address);
+      } else {
+        const el = document.createElement('textarea');
+        el.value = address;
+        el.style.position = 'fixed';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        try {
+          el.select();
+          document.execCommand('copy');
+        } finally {
+          document.body.removeChild(el);
+        }
+      }
+      setCopiedPoiId(id);
+    } catch (err) {
+      console.error('Failed to copy address', err);
+    }
   }, []);
 
   const polygonOptions = useMemo(
@@ -564,9 +589,22 @@ export default function Home() {
               onCloseClick={() => setSelectedPoiId(null)}
             >
               <div style={{ padding: 4, maxWidth: 280 }}>
-                <strong style={{ fontSize: 14 }}>{selectedPoi.name}</strong>
+                <strong style={{ fontSize: 16 }}>{selectedPoi.name}</strong>
                 <br />
-                <span style={{ fontSize: 12, color: '#555' }}>{selectedPoi.address}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                  <span style={{ fontSize: 14, color: '#555', overflowWrap: 'break-word', flex: 1 }}>
+                    {selectedPoi.address}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyAddress(selectedPoi.address, selectedPoi.id)}
+                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0 }}
+                    aria-label="copy address"
+                    title="copy address"
+                  >
+                    <Copy size={16} />
+                  </button>
+                </div>
               </div>
             </InfoWindow>
           )}
