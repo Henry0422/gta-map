@@ -591,18 +591,18 @@ export default function Home() {
               <div style={{ padding: 4, maxWidth: 280 }}>
                 <strong style={{ fontSize: 16 }}>{selectedPoi.name}</strong>
                 <br />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
                   <span style={{ fontSize: 14, color: '#555', overflowWrap: 'break-word', flex: 1 }}>
                     {selectedPoi.address}
                   </span>
                   <button
                     type="button"
                     onClick={() => handleCopyAddress(selectedPoi.address, selectedPoi.id)}
-                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0 }}
+                    className="copy-button"
                     aria-label="copy address"
                     title="copy address"
                   >
-                    <Copy size={16} />
+                    <Copy size={16} color="currentColor" />
                   </button>
                 </div>
               </div>
